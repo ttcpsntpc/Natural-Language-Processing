@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_DICT_SIZE 1000   // ¦r¨å³Ì¤jµü±ø¼Æ
-#define MAX_WORD_LEN 20     // ³æµü³Ì¤jªø«×
-#define MAX_SENT_LEN 1000    // ¥y¤l³Ì¤jªø«×
-#define MAX_PATH_DEPTH 1000  // Â_µü¸ô®|³Ì¤j²`«×
+#define MAX_DICT_SIZE 1000   // å­—å…¸æœ€å¤§è©æ¢æ•¸
+#define MAX_WORD_LEN 20     // å–®è©æœ€å¤§é•·åº¦
+#define MAX_SENT_LEN 1000    // å¥å­æœ€å¤§é•·åº¦
+#define MAX_PATH_DEPTH 1000  // æ–·è©è·¯å¾‘æœ€å¤§æ·±åº¦
 
 char dict[MAX_DICT_SIZE][MAX_WORD_LEN];
 int dict_count = 0;
 
-// ¥h°£´«¦æ²Å¸¹
+// å»é™¤æ›è¡Œç¬¦è™Ÿ
 void trim(char *str) {
     int len = strlen(str);
     while (len > 0 && (str[len - 1] == '\n' || str[len - 1] == '\r')) {
@@ -19,21 +19,21 @@ void trim(char *str) {
     }
 }
 
-/* * »¼°j¨ç¼Æ¡G´M§ä©Ò¦³¥i¯àªºÂ_µü²Õ¦X
- * input: ­ì©l¥y¤l
- * offset: ¥Ø«e³B²z¨ìªº¦r¦ê¯Á¤Ş¦ì¸m
- * path: ¥Ø«e²Ö¿nªºÂ_µüµ²ªG («ü¼Ğ°}¦C)
- * depth: ¥Ø«e¸ô®|ªº³æµü¼Æ¶q
- * fp_out: ¿é¥XªºÀÉ®×«ü¼Ğ
+/* * éè¿´å‡½æ•¸ï¼šå°‹æ‰¾æ‰€æœ‰å¯èƒ½çš„æ–·è©çµ„åˆ
+ * input: åŸå§‹å¥å­
+ * offset: ç›®å‰è™•ç†åˆ°çš„å­—ä¸²ç´¢å¼•ä½ç½®
+ * path: ç›®å‰ç´¯ç©çš„æ–·è©çµæœ (æŒ‡æ¨™é™£åˆ—)
+ * depth: ç›®å‰è·¯å¾‘çš„å–®è©æ•¸é‡
+ * fp_out: è¼¸å‡ºçš„æª”æ¡ˆæŒ‡æ¨™
  */
 void find_segments(const char *input, int offset, char *path[], int depth, FILE *fp_out) {
     int input_len = strlen(input);
 
-    // °ò©³±¡ªp (Base Case)¡G¦pªG¤w¸g³B²z¨ì¥y¤lµ²§À
+    // åŸºåº•æƒ…æ³ (Base Case)ï¼šå¦‚æœå·²ç¶“è™•ç†åˆ°å¥å­çµå°¾
     if (offset == input_len) {
         for (int i = 0; i < depth; i++) {
             fprintf(fp_out, "%s", path[i]);
-            // ³æµü¤§¶¡¥[¤WªÅ¥Õ¡A³Ì«á¤@­Ó³æµü«á¤£¥[
+            // å–®è©ä¹‹é–“åŠ ä¸Šç©ºç™½ï¼Œæœ€å¾Œä¸€å€‹å–®è©å¾Œä¸åŠ 
             if (i < depth - 1) {
                 fprintf(fp_out, " ");
             }
@@ -42,22 +42,22 @@ void find_segments(const char *input, int offset, char *path[], int depth, FILE 
         return;
     }
 
-    // »¼°j¨BÆJ¡G¹Á¸Õ¦r¨å¤¤ªº¨C¤@­Óµü
-    // ÀË¬d¥y¤l±q¥Ø«e offset ¶}©l¡A¬O§_¤Ç°t¦r¨å¤¤ªº¬Y­Óµü
+    // éè¿´æ­¥é©Ÿï¼šå˜—è©¦å­—å…¸ä¸­çš„æ¯ä¸€å€‹è©
+    // æª¢æŸ¥å¥å­å¾ç›®å‰ offset é–‹å§‹ï¼Œæ˜¯å¦åŒ¹é…å­—å…¸ä¸­çš„æŸå€‹è©
     for (int i = 0; i < dict_count; i++) {
         int word_len = strlen(dict[i]);
         
-        // ¦pªG³Ñ¾lªø«×¨¬°÷¡A¥B¦r¦ê¤Ç°t
+        // å¦‚æœå‰©é¤˜é•·åº¦è¶³å¤ ï¼Œä¸”å­—ä¸²åŒ¹é…
         if (offset + word_len <= input_len) {
             if (strncmp(input + offset, dict[i], word_len) == 0) {
-                // °O¿ı³o­Óµü¨ì¸ô®|¤¤
+                // è¨˜éŒ„é€™å€‹è©åˆ°è·¯å¾‘ä¸­
                 path[depth] = dict[i];
                 
-                // ©¹¤UÄ~Äò»¼°j (offset «e¶i¡Adepth + 1)
+                // å¾€ä¸‹ç¹¼çºŒéè¿´ (offset å‰é€²ï¼Œdepth + 1)
                 find_segments(input, offset + word_len, path, depth + 1, fp_out);
                 
-                // ¦^·¹ (Backtrack) µo¥Í¦b°j°é¶i¤J¤U¤@¦¸­¡¥N®É¡A
-                // path[depth] ·|³Q·sªºµüÂĞ»\¡A©ÎªÌ°j°éµ²§ôªğ¦^¤W¤@¼h¡C
+                // å›æº¯ (Backtrack) ç™¼ç”Ÿåœ¨è¿´åœˆé€²å…¥ä¸‹ä¸€æ¬¡è¿­ä»£æ™‚ï¼Œ
+                // path[depth] æœƒè¢«æ–°çš„è©è¦†è“‹ï¼Œæˆ–è€…è¿´åœˆçµæŸè¿”å›ä¸Šä¸€å±¤ã€‚
             }
         }
     }
@@ -66,7 +66,7 @@ void find_segments(const char *input, int offset, char *path[], int depth, FILE 
 int main() {
     FILE *f_dict = fopen("dictionary.txt", "r");
     if (!f_dict) {
-        printf("Error: µLªk¶}±Ò dictionary.txt\n");
+        printf("Error: ç„¡æ³•é–‹å•Ÿ dictionary.txt\n");
         return 1;
     }
 
@@ -88,13 +88,13 @@ int main() {
     FILE *f_out = fopen("output.txt", "w");
     
     char sentence[MAX_SENT_LEN];
-    char *path[MAX_PATH_DEPTH]; // ¥Î¨Ó¼È¦s»¼°j¹Lµ{¤¤ªº³æµü«ü¼Ğ
+    char *path[MAX_PATH_DEPTH]; // ç”¨ä¾†æš«å­˜éè¿´éç¨‹ä¸­çš„å–®è©æŒ‡æ¨™
 
     while (fgets(sentence, sizeof(sentence), f_in)) {
         trim(sentence);
         if (strlen(sentence) == 0) continue;
 
-        // ©I¥s»¼°j¨ç¼Æ¶}©lÂ_µü
+        // å‘¼å«éè¿´å‡½æ•¸é–‹å§‹æ–·è©
         find_segments(sentence, 0, path, 0, f_out);
         fprintf(f_out, "\n");
     }
